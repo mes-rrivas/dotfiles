@@ -15,6 +15,13 @@ Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-ui'
 Plug 'kristijanhusak/vim-dadbod-completion'
 
+Plug 'nvim-lua/plenary.nvim'
+Plug 'pmizio/typescript-tools.nvim'
+
+Plug 'airblade/vim-rooter'
+Plug 'BurntSushi/ripgrep'
+Plug 'nvim-telescope/telescope.nvim'
+
 call plug#end()
 
 set expandtab
@@ -27,8 +34,13 @@ let g:db_ui_execute_on_save = 0
 
 lua << EOF
 
+vim.opt.grepprg = "rg --vimgrep"
+vim.opt.grepformat = "%f:%l:%c:%m"
+vim.cmd('colorscheme slate')
+
 local pid = vim.fn.getpid()
 local omnisharp_bin = "/usr/local/bin/omnisharp-roslyn/OmniSharp"
+
 
 local on_attach = function(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
@@ -107,9 +119,11 @@ end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-  require'lspconfig'.ts_ls.setup{
-    cmd = { "typescript-language-server", "--stdio" }
-  }
+  --require'lspconfig'.ts_ls.setup{
+    --cmd = { "typescript-language-server", "--stdio" }
+  --}
+
+  require 'typescript-tools'.setup{}
 
   require'lspconfig'.omnisharp.setup{
      cmd = {omnisharp_bin, "--languageserver", "--hostPID", tostring(pid)},
@@ -118,3 +132,4 @@ end
   }
 
 EOF
+
