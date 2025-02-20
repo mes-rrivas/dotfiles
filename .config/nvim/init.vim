@@ -1,26 +1,54 @@
 call plug#begin()
 
 Plug 'neovim/nvim-lspconfig'
-Plug 'OmniSharp/omnisharp-vim'
+
+" Completions
 Plug 'hrsh7th/cmp-nvim-lsp'
 Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 
+" Snippets
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/vim-vsnip'
 
+" C# Support
+Plug 'OmniSharp/omnisharp-vim'
+Plug 'dense-analysis/ale'
+Plug 'tpope/vim-dispatch'
+Plug 'Shougo/vimproc.vim'
+Plug 'prabirshrestha/asyncomplete.vim'
+
+" Debugging
+Plug 'puremourning/vimspector'
+
+" SQL client
 Plug 'tpope/vim-dadbod'
 Plug 'kristijanhusak/vim-dadbod-ui'
 Plug 'kristijanhusak/vim-dadbod-completion'
 
+"TS support
 Plug 'nvim-lua/plenary.nvim'
 Plug 'pmizio/typescript-tools.nvim'
 
-Plug 'airblade/vim-rooter'
+" Telescope
 Plug 'BurntSushi/ripgrep'
 Plug 'nvim-telescope/telescope.nvim'
+
+"Copilot
+Plug 'github/copilot.vim'
+Plug 'CopilotC-Nvim/CopilotChat.nvim'
+
+" Colorscheme
+Plug 'catppuccin/nvim'
+
+" Statusline
+Plug 'itchyny/lightline.vim'
+Plug 'shinchu/lightline-gruvbox.vim'
+Plug 'maximbaz/lightline-ale'
+
+Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app && npx --yes yarn install' }
 
 call plug#end()
 
@@ -31,19 +59,26 @@ set softtabstop=4
 set autoindent
 set smartindent
 let g:db_ui_execute_on_save = 0
+let g:copilot_enabled = 0
+let g:OmniSharp_server_use_net6 = 1
+let g:ale_linters = {
+\ 'cs': ['OmniSharp']
+\}
+let g:vimspector_enable_mappings = 'HUMAN'
+let g:mkdp_echo_preview_url = 1
 
 lua << EOF
-
 vim.opt.grepprg = "rg --vimgrep"
 vim.opt.grepformat = "%f:%l:%c:%m"
-vim.cmd('colorscheme slate')
+vim.cmd('colorscheme catppuccin-mocha')
+vim.keymap.set('n','<space>e','<cmd>lua vim.diagnostic.open_float()<CR>')
 
 local pid = vim.fn.getpid()
-local omnisharp_bin = "/usr/local/bin/omnisharp-roslyn/OmniSharp"
 
 
 local on_attach = function(client, bufnr)
   -- Enable completion triggered by <c-x><c-o>
+
   vim.api.nvim_buf_set_option(bufnr, 'omnifunc', 'v:lua.vim.lsp.omnifunc')
 
   -- Mappings.
@@ -93,8 +128,8 @@ end
       -- { name = 'luasnip' }, -- For luasnip users.
       -- { name = 'ultisnips' }, -- For ultisnips users.
       -- { name = 'snippy' }, -- For snippy users.
-    }, {
-      { name = 'buffer' },
+       {name = 'buffer' },
+       { name ='vim-dadbod-completion' }
     })
   })
 
@@ -119,17 +154,7 @@ end
 
   local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-  --require'lspconfig'.ts_ls.setup{
-    --cmd = { "typescript-language-server", "--stdio" }
-  --}
-
   require 'typescript-tools'.setup{}
 
-  require'lspconfig'.omnisharp.setup{
-     cmd = {omnisharp_bin, "--languageserver", "--hostPID", tostring(pid)},
-     on_attach = on_attach,
-     capabilities = capabilities
-  }
-
+  require'CopilotChat'.setup{}
 EOF
-
